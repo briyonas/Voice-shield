@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>VoiceShield — Zero Touch SOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --pink: #e91e8c;
+  --purple: #9c27b0;
+  --cyan: #00bcd4;
+  --green: #00e676;
+  --red: #ff1744;
+  --orange: #ff9100;
+  --bg: #070710;
+  --surface: #0f0f1e;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f0f8;
+  --muted: #7a7a9a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;overflow-x:hidden;
+}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--pink);border-radius:2px}
+
+/* ── BG GRID + ORBS ── */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.6;animation:orbFloat 8s ease-in-out infinite alternate}
+@keyframes orbFloat{from{transform:translateY(0) scale(1)}to{transform:translateY(-40px) scale(1.05)}}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 32px;
+  background:rgba(7,7,16,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{display:flex;align-items:center;gap:12px}
+.logo-text{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:900;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-0.5px;
+}
+.logo-badge{
+  font-size:9px;letter-spacing:1.5px;color:var(--pink);
+  border:1px solid rgba(233,30,140,0.4);
+  background:rgba(233,30,140,0.08);
+  padding:2px 10px;border-radius:20px;
+}
+.nav-status{display:flex;align-items:center;gap:8px}
+.pulse-dot{
+  width:8px;height:8px;border-radius:50%;display:inline-block;
+  animation:pulseDot 1.4s ease-in-out infinite;
+}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.6)}}
+.nav-btns{display:flex;gap:10px;align-items:center}
+.btn-ghost{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+  color:#aaa;padding:8px 18px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+/* ── SCREENS ── */
+.screen{display:none;position:relative;z-index:1}
+.screen.active{display:block}
+
+/* ── LANDING ── */
+#landing{padding-top:80px}
+.hero{
+  text-align:center;padding:100px 24px 80px;
+  max-width:920px;margin:0 auto;
+}
+.hero-tag{
+  display:inline-block;font-size:11px;letter-spacing:3px;
+  color:var(--pink);border:1px solid rgba(233,30,140,0.35);
+  background:rgba(233,30,140,0.07);
+  padding:4px 18px;border-radius:30px;margin-bottom:28px;
+  animation:fadeUp .6s ease both;
+}
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(52px,10vw,100px);
+  font-weight:900;line-height:.92;
+  letter-spacing:-3px;margin-bottom:24px;
+  animation:fadeUp .6s ease .1s both;
+}
+.hero-accent{
+  background:linear-gradient(135deg,var(--pink),#c849fe,var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  font-size:clamp(15px,2.5vw,22px);color:var(--muted);
+  font-style:italic;margin-bottom:16px;
+  animation:fadeUp .6s ease .2s both;
+}
+.hero-desc{
+  font-size:15px;color:#6a6a8a;line-height:1.8;
+  max-width:500px;margin:0 auto 40px;
+  animation:fadeUp .6s ease .3s both;
+}
+.hero-ctas{
+  display:flex;gap:16px;justify-content:center;
+  flex-wrap:wrap;margin-bottom:64px;
+  animation:fadeUp .6s ease .4s both;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  border:none;color:#fff;padding:16px 44px;border-radius:12px;
+  font-size:16px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all .3s;letter-spacing:.3px;
+}
+.btn-primary:hover{
+  box-shadow:0 0 40px rgba(233,30,140,0.5),0 0 80px rgba(233,30,140,0.2);
+  transform:translateY(-2px);
+}
+.btn-outline{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#ccc;padding:16px 32px;border-radius:12px;
+  font-size:16px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  text-decoration:none;display:inline-flex;align-items:center;
+  transition:all .2s;
+}
+.btn-outline:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+.stats-row{
+  display:flex;gap:16px;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp .6s ease .5s both;
+}
+.stat-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:16px;padding:20px 28px;
+  text-align:center;
+}
+.stat-val{
+  font-family:'Syne',sans-serif;font-size:32px;font-weight:900;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:block;
+}
+.stat-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;margin-top:4px}
+
+/* ── SECTION ── */
+.section{max-width:1100px;margin:0 auto;padding:80px 24px}
+.sec-tag{font-size:10px;letter-spacing:3px;color:var(--pink);margin-bottom:12px;text-transform:uppercase}
+.sec-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(26px,4vw,48px);
+  font-weight:900;letter-spacing:-1.5px;
+  margin-bottom:48px;line-height:1.05;
+}
+
+/* ── SIGNAL CARDS ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:20px;padding:32px;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(233,30,140,0.04),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.card:hover{transform:translateY(-6px);border-color:rgba(233,30,140,0.25)}
+.card:hover::before{opacity:1}
+.card-badge{
+  display:inline-block;font-family:'Syne',sans-serif;
+  font-size:26px;font-weight:900;color:#fff;
+  padding:8px 20px;border-radius:30px;margin-bottom:20px;
+}
+.card-icon{font-size:36px;margin-bottom:14px}
+.card-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:10px}
+.card-desc{font-size:13px;color:var(--muted);line-height:1.75}
+
+/* ── FORMULA ── */
+.formula-box{
+  background:#080815;border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:28px;text-align:center;margin-top:40px;
+}
+.formula{
+  font-family:'Courier New',monospace;font-size:14px;
+  color:#ccc;line-height:2.2;
+}
+.formula-green{color:var(--green);font-weight:700}
+
+/* ── PIPELINE ── */
+.pipeline{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;position:relative;
+}
+.pipe-step{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:20px;padding:28px 24px;
+  transition:all .3s;text-align:center;
+}
+.pipe-step:hover{transform:translateY(-4px);border-color:rgba(0,188,212,0.3)}
+.pipe-num{font-size:11px;color:var(--pink);font-weight:700;letter-spacing:2px;margin-bottom:12px}
+.pipe-icon{font-size:36px;margin-bottom:12px}
+.pipe-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:8px}
+.pipe-desc{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* ── KEYWORDS ── */
+.kw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.kw-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:24px}
+.kw-lang{font-size:14px;font-weight:700;margin-bottom:16px}
+.kw-chips{display:flex;flex-wrap:wrap;gap:8px}
+.kw-chip{
+  border:1px solid;border-radius:20px;
+  padding:4px 14px;font-size:13px;
+}
+
+/* ── SETUP ── */
+#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 24px 40px}
+.setup-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;padding:40px;
+  width:100%;max-width:520px;
+}
+.contact-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.contact-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;
+  background:rgba(255,255,255,0.04);
+  border-radius:12px;border:1px solid var(--border);
+}
+.c-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;flex-shrink:0;
+}
+.c-info{flex:1}
+.c-name{font-size:14px;font-weight:600}
+.c-phone{font-size:12px;color:var(--muted)}
+.c-toggle{
+  border:1px solid;border-radius:8px;
+  padding:6px 12px;font-size:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.c-remove{background:none;border:none;color:#444;cursor:pointer;font-size:18px;padding:2px 4px;transition:color .2s}
+.c-remove:hover{color:#ff1744}
+.add-form{display:flex;gap:8px}
+.inp{
+  flex:1;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:12px 16px;
+  color:#fff;font-size:14px;outline:none;
+  font-family:'DM Sans',sans-serif;
+  transition:border-color .2s;
+}
+.inp:focus{border-color:var(--pink)}
+.inp::placeholder{color:#444}
+.add-btn{
+  background:var(--pink);border:none;color:#fff;
+  padding:12px 20px;border-radius:10px;cursor:pointer;
+  font-size:18px;font-weight:700;font-family:'DM Sans',sans-serif;
+  transition:all .2s;
+}
+.add-btn:hover{background:#c4197a}
+
+/* ── ARMED SCREEN ── */
+#armed{
+  min-height:100vh;
+  padding:90px 24px 40px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.orb-wrap{position:relative;width:230px;height:230px;margin-bottom:28px;flex-shrink:0}
+.status-orb{
+  position:relative;z-index:1;
+  width:230px;height:230px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#1a0a2e,#070710);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2px solid rgba(233,30,140,0.3);
+  transition:box-shadow .5s ease,border-color .5s ease;
+  animation:orbBreath 3s ease-in-out infinite;
+}
+@keyframes orbBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.orb-score{
+  font-family:'Syne',sans-serif;font-size:42px;font-weight:900;
+  line-height:1;transition:color .4s;
+}
+.orb-label{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px}
+.orb-state{font-size:13px;font-weight:700;margin-top:10px;transition:color .4s}
+.progress-ring{position:absolute;inset:0}
+
+/* ── WAVEFORM ── */
+.waveform{
+  display:flex;align-items:flex-end;gap:2px;
+  height:72px;width:100%;max-width:580px;
+  margin-bottom:20px;padding:0 8px;overflow:hidden;
+}
+.wave-bar{
+  flex:1;border-radius:3px;min-height:3px;
+  transition:height .08s ease;
+}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;gap:6px;margin-bottom:16px;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px;padding:4px;
+  width:100%;max-width:580px;
+}
+.tab-btn{
+  flex:1;padding:10px;border-radius:8px;
+  border:1px solid transparent;color:var(--muted);
+  cursor:pointer;font-size:13px;
+  font-family:'DM Sans',sans-serif;
+  background:transparent;transition:all .2s;
+}
+.tab-btn.active{
+  background:rgba(255,255,255,0.1);
+  border-color:var(--pink);color:#fff;
+}
+.tab-content{width:100%;max-width:580px;display:none}
+.tab-content.active{display:block}
+
+/* ── SIGNAL ROWS ── */
+.sig-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.sig-row{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,0.04);
+  border-radius:12px;padding:12px 16px;
+}
+.sig-left{display:flex;align-items:center;gap:10px;flex:1}
+.sig-name{font-size:13px;font-weight:600;color:#ccc}
+.sig-wt{font-size:10px;color:#555}
+.sig-right{display:flex;align-items:center;gap:10px;width:180px}
+.mini-bar{flex:1;height:7px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden}
+.mini-fill{height:100%;border-radius:4px;transition:width .25s ease}
+.sig-pct{font-size:13px;font-weight:700;width:36px;text-align:right;font-family:'DM Sans',sans-serif}
+
+/* ── WINDOW DOTS ── */
+.win-row{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.04);
+  border-radius:10px;padding:10px 14px;margin-bottom:12px;
+}
+.win-label{font-size:11px;color:var(--muted);margin-right:4px}
+.win-dot{width:22px;height:22px;border-radius:50%;background:#222;transition:all .3s}
+
+/* ── KEYWORDS DETECTED ── */
+.kw-detected{
+  background:rgba(233,30,140,0.07);
+  border:1px solid rgba(233,30,140,0.2);
+  border-radius:12px;padding:14px;margin-bottom:12px;
+}
+.kw-det-label{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-bottom:8px;text-transform:uppercase}
+.kw-det-chips{display:flex;flex-wrap:wrap;gap:8px}
+.kw-det-chip{
+  border:1px solid rgba(233,30,140,0.4);
+  border-radius:20px;padding:4px 12px;
+  font-size:12px;color:var(--pink);
+}
+
+/* ── LOG ── */
+.log-box{
+  background:#04040d;border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;padding:14px;
+  max-height:180px;overflow-y:auto;
+}
+.log-hdr{font-size:10px;color:#444;font-family:monospace;margin-bottom:6px}
+.log-line{font-size:11px;color:var(--muted);font-family:monospace;line-height:1.9}
+
+/* ── GEO ── */
+.geo-card{background:rgba(255,255,255,0.04);border-radius:16px;padding:20px}
+.geo-hdr{display:flex;align-items:center;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.geo-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.geo-label{font-size:12px;color:var(--muted)}
+.geo-val{font-size:14px;font-weight:600;color:var(--cyan);font-family:monospace}
+.maps-btn{
+  display:block;margin-top:18px;text-align:center;
+  background:rgba(0,188,212,0.08);border:1px solid rgba(0,188,212,0.3);
+  border-radius:12px;padding:12px;color:var(--cyan);
+  text-decoration:none;font-size:14px;font-weight:600;transition:all .2s;
+}
+.maps-btn:hover{background:rgba(0,188,212,0.15)}
+.share-box{margin-top:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:12px}
+.share-label{font-size:11px;color:#555;margin-bottom:6px}
+.share-url{font-size:11px;color:var(--cyan);word-break:break-all;font-family:monospace}
+
+.disarm-btn{
+  margin-top:28px;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#666;padding:12px 36px;border-radius:10px;
+  cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;
+  transition:all .2s;
+}
+.disarm-btn:hover{color:#ccc;border-color:rgba(255,255,255,0.2)}
+
+/* ── SOS SCREEN ── */
+#sos-screen{
+  position:fixed;inset:0;z-index:200;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(5,0,12,0.96);
+  flex-direction:column;
+}
+#sos-screen.active{display:flex}
+.sos-bg-flash{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 50%,rgba(255,23,68,0.18) 0%,transparent 70%);
+  animation:sosFlash 1s ease-in-out infinite alternate;
+}
+@keyframes sosFlash{from{opacity:.7}to{opacity:1}}
+.sos-inner{position:relative;z-index:1;text-align:center;padding:32px;max-width:480px}
+.sos-icon{font-size:72px;animation:sosShake .5s ease-in-out infinite;display:block;margin-bottom:16px}
+@keyframes sosShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+.sos-title{
+  font-family:'Syne',sans-serif;font-size:48px;font-weight:900;
+  color:var(--red);letter-spacing:-2px;margin-bottom:8px;
+}
+.sos-sub{color:#aaa;font-size:16px;margin-bottom:32px}
+.sos-timer-wrap{position:relative;width:150px;height:150px;margin:0 auto 28px}
+.sos-countdown{
+  position:absolute;inset:0;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;
+}
+.sos-num{font-family:'Syne',sans-serif;font-size:48px;font-weight:900;color:var(--red);line-height:1}
+.sos-sec{font-size:11px;color:rgba(255,23,68,0.7);margin-top:2px}
+.sos-contacts-row{display:flex;gap:16px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.sos-contact{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sos-c-avatar{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,var(--red),#7c0a24);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;
+}
+.sos-c-name{font-size:12px;color:#ccc}
+.sos-c-status{font-size:10px;color:var(--red)}
+.sos-geo{
+  background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.2);
+  border-radius:10px;padding:10px 18px;margin-bottom:20px;
+  font-size:12px;color:#888;
+}
+.cancel-btn{
+  background:none;border:2px solid var(--red);
+  color:var(--red);padding:16px 52px;border-radius:12px;
+  font-size:16px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;margin-bottom:16px;
+  transition:all .2s;
+}
+.cancel-btn:hover{background:rgba(255,23,68,0.1)}
+.sms-sent{
+  background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.25);
+  border-radius:12px;padding:12px 20px;
+  color:var(--green);font-size:13px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  nav{padding:12px 16px}
+  .hero{padding:80px 16px 60px}
+  .section{padding:60px 16px}
+  .stats-row{gap:10px}
+  .stat-card{padding:16px 20px}
+  .stat-val{font-size:26px}
+  .sig-right{width:140px}
+}
+</style>
+</head>
+<body>
+
+<!-- BG -->
+<div id="bg">
+  <div class="bg-grid"></div>
+  <div class="bg-orb" style="width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(200,0,255,0.1) 0%,transparent 70%);animation-delay:0s"></div>
+  <div class="bg-orb" style="width:400px;height:400px;top:40%;right:-80px;background:radial-gradient(circle,rgba(233,30,140,0.09) 0%,transparent 70%);animation-delay:-3s"></div>
+  <div class="bg-orb" style="width:350px;height:350px;bottom:10%;left:20%;background:radial-gradient(circle,rgba(0,188,212,0.07) 0%,transparent 70%);animation-delay:-6s"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span style="font-size:22px">🛡️</span>
+    <span class="logo-text">VoiceShield</span>
+    <span class="logo-badge">ELITE HER 2026</span>
+  </div>
+  <div class="nav-btns">
+    <div class="nav-status" id="nav-status" style="display:none">
+      <span class="pulse-dot" id="nav-dot" style="background:var(--green)"></span>
+      <span id="nav-status-text" style="font-size:12px;font-family:monospace;color:var(--green)">ARMED</span>
+    </div>
+    <button class="btn-ghost" id="nav-disarm-btn" style="display:none" onclick="disarm()">Disarm</button>
+  </div>
+</nav>
+
+<!-- ═══════════════ LANDING ═══════════════ -->
+<div id="landing" class="screen active">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-tag">ELITE HER HACKATHON 2026</div>
+    <h1 class="hero-title">Voice<span class="hero-accent">Shield</span></h1>
+    <p class="hero-sub">Zero touch. No button. No free hand needed.</p>
+    <p class="hero-desc">Real-Time AI distress detection — your phone listens passively. When it detects danger in your voice, it silently fires SOS with live GPS to your trusted contacts.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="showScreen('setup')">Get Protected →</button>
+      <a href="#how" class="btn-outline">How it works</a>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-val">0ms</span><span class="stat-label">Server lag</span></div>
+      <div class="stat-card"><span class="stat-val">36h</span><span class="stat-label">Built in</span></div>
+      <div class="stat-card"><span class="stat-val">3</span><span class="stat-label">Signal types</span></div>
+      <div class="stat-card"><span class="stat-val">100%</span><span class="stat-label">On-device ML</span></div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <section id="how" class="section">
+    <div class="sec-tag">HOW IT WORKS</div>
+    <h2 class="sec-title">Three-Signal Distress Detection</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-badge" style="background:#e91e8c">40%</div>
+        <div class="card-icon">🧠</div>
+        <div class="card-title">YAMNet Audio AI</div>
+        <div class="card-desc">Google's pretrained audio model detects screams, cries & panic sounds. Runs 100% on-device via TensorFlow.js — audio never leaves your phone.</div>
+      </div>
+      <div class="card">
+        <div class="card-badge" style="background:#7c3aed">35%</div>
+        <div class="card-icon">📊</div>
+        <div class="card-title">Pitch + Energy FFT</div>
+        <div class="card-desc">Real-time frequency analysis detects sudden pitch spikes >40% above your personal baseline — the acoustic signature of fear and distress.</div>
+      </div>
+      <div class="card">
+        <div class="card-badge" style="background:#0284c7">25%</div>
+        <div class="card-icon">🗣️</div>
+        <div class="card-title">Keyword Detection</div>
+        <div class="card-desc">Web Speech API listens simultaneously for distress words in English, Hindi & Gujarati: bachao, chodo, help, mujhe chod do, madad karo.</div>
+      </div>
+    </div>
+    <div class="formula-box">
+      <div class="formula">
+        Score = YAMNet × 0.40 + Pitch × 0.35 + Keyword × 0.25<br/>
+        <span class="formula-green">If score &gt; 0.72 for 3 consecutive windows → Gemini confirms → SOS fires</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="section" style="background:rgba(233,30,140,0.03);border-radius:24px">
+    <div class="sec-tag">DETECTION PIPELINE</div>
+    <h2 class="sec-title">Safety in 4 Steps</h2>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-icon">🎙️</div>
+        <div class="pipe-title">Passive Listening</div>
+        <div class="pipe-desc">Phone listens in background — screen locked, hands free, zero interaction</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-icon">⚡</div>
+        <div class="pipe-title">AI Detects Distress</div>
+        <div class="pipe-desc">3-signal fusion scores audio in under 600ms per window</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">03</div>
+        <div class="pipe-icon">✅</div>
+        <div class="pipe-title">Gemini Confirms</div>
+        <div class="pipe-desc">Flash API validates pattern in under 1s before firing to prevent false alarms</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">04</div>
+        <div class="pipe-icon">📱</div>
+        <div class="pipe-title">Silent SOS Fires</div>
+        <div class="pipe-desc">SMS + WhatsApp sent to armed contacts with live GPS link instantly</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Keywords -->
+  <section class="section">
+    <div class="sec-tag">MULTILINGUAL DETECTION</div>
+    <h2 class="sec-title">Built for Indian Women</h2>
+    <div class="kw-grid">
+      <div class="kw-card">
+        <div class="kw-lang" style="color:#e91e8c">हिंदी (Hindi)</div>
+        <div class="kw-chips">
+          <span class="kw-chip" style="border-color:rgba(233,30,140,0.4);color:#e91e8c">बचाओ</span>
+          <span class="kw-chip" style="border-color:rgba(233,30,140,0.4);color:#e91e8c">छोड़ो</span>
+          <span class="kw-chip" style="border-color:rgba(233,30,140,0.4);color:#e91e8c">मुझे छोड़ दो</span>
+          <span class="kw-chip" style="border-color:rgba(233,30,140,0.4);color:#e91e8c">मदद करो</span>
+          <span class="kw-chip" style="border-color:rgba(233,30,140,0.4);color:#e91e8c">रुको</span>
+          <span class="kw-chip" style="border-color:rgba(233,30,140,0.4);color:#e91e8c">नहीं</span>
+        </div>
+      </div>
+      <div class="kw-card">
+        <div class="kw-lang" style="color:#7c3aed">English</div>
+        <div class="kw-chips">
+          <span class="kw-chip" style="border-color:rgba(124,58,237,0.4);color:#9c7dff">help</span>
+          <span class="kw-chip" style="border-color:rgba(124,58,237,0.4);color:#9c7dff">stop</span>
+          <span class="kw-chip" style="border-color:rgba(124,58,237,0.4);color:#9c7dff">let me go</span>
+          <span class="kw-chip" style="border-color:rgba(124,58,237,0.4);color:#9c7dff">don't</span>
+          <span class="kw-chip" style="border-color:rgba(124,58,237,0.4);color:#9c7dff">help me</span>
+          <span class="kw-chip" style="border-color:rgba(124,58,237,0.4);color:#9c7dff">leave me</span>
+        </div>
+      </div>
+      <div class="kw-card">
+        <div class="kw-lang" style="color:#0ea5e9">ગુજરાતી (Gujarati)</div>
+        <div class="kw-chips">
+          <span class="kw-chip" style="border-color:rgba(14,165,233,0.4);color:#0ea5e9">બચાવો</span>
+          <span class="kw-chip" style="border-color:rgba(14,165,233,0.4);color:#0ea5e9">છોડો</span>
+          <span class="kw-chip" style="border-color:rgba(14,165,233,0.4);color:#0ea5e9">મદદ કરો</span>
+          <span class="kw-chip" style="border-color:rgba(14,165,233,0.4);color:#0ea5e9">નહી</span>
+          <span class="kw-chip" style="border-color:rgba(14,165,233,0.4);color:#0ea5e9">રોકો</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="section" style="text-align:center;padding-bottom:120px">
+    <div class="sec-tag" style="text-align:center">GET PROTECTED</div>
+    <h2 class="sec-title" style="font-size:clamp(32px,6vw,56px)">Ready to be protected?</h2>
+    <p style="color:var(--muted);margin-bottom:36px;font-size:15px">Set up takes 60 seconds. No install. Works in any Chrome browser.</p>
+    <button class="btn-primary" style="font-size:18px;padding:20px 60px" onclick="showScreen('setup')">Arm VoiceShield Now →</button>
+  </section>
+
+  <footer style="text-align:center;padding:32px;border-top:1px solid var(--border);color:#333;font-size:12px">
+    VoiceShield — Elite Her Hackathon 2026 · On-device ML · No ads · No data sale · No surveillance
+  </footer>
+</div>
+
+<!-- ═══════════════ SETUP ═══════════════ -->
+<div id="setup" class="screen">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 24px 40px">
+    <div class="setup-card">
+      <div class="sec-tag">STEP 1 OF 2</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:8px">Set Up Your Contacts</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:28px">These people get SMS + live GPS when distress is detected.</p>
+
+      <div class="contact-list" id="contact-list"></div>
+
+      <div class="add-form" style="margin-bottom:28px">
+        <input class="inp" id="inp-name" placeholder="Contact name" />
+        <input class="inp" id="inp-phone" placeholder="+91 98765 43210" />
+        <button class="add-btn" onclick="addContact()">+</button>
+      </div>
+
+      <button class="btn-primary" style="width:100%" id="arm-btn" onclick="armVoiceShield()">
+        🛡️ Arm VoiceShield
+      </button>
+
+      <button class="btn-ghost" style="width:100%;margin-top:10px" onclick="showScreen('landing')">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ARMED ═══════════════ -->
+<div id="armed" class="screen">
+  <!-- Orb -->
+  <div class="orb-wrap" style="margin-top:16px">
+    <div class="status-orb" id="status-orb">
+      <div class="orb-score" id="orb-score" style="color:var(--green)">0%</div>
+      <div class="orb-label">distress score</div>
+      <div class="orb-state" id="orb-state" style="color:var(--green)">🛡️ SAFE</div>
+    </div>
+    <svg class="progress-ring" width="230" height="230" style="position:absolute;inset:0">
+      <circle cx="115" cy="115" r="110" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"/>
+      <circle id="progress-circle" cx="115" cy="115" r="110" fill="none" stroke="var(--green)" stroke-width="3"
+        stroke-dasharray="691.15" stroke-dashoffset="691.15"
+        stroke-linecap="round"
+        style="transform:rotate(-90deg);transform-origin:115px 115px;transition:all .35s ease"/>
+    </svg>
+  </div>
+
+  <!-- Waveform -->
+  <div class="waveform" id="waveform"></div>
+
+  <!-- Tabs -->
+  <div class="tabs" style="max-width:580px;width:100%">
+    <button class="tab-btn active" onclick="switchTab('detection',this)">📊 Detection</button>
+    <button class="tab-btn" onclick="switchTab('contacts-tab',this)">👥 Contacts</button>
+    <button class="tab-btn" onclick="switchTab('location',this)">📍 Location</button>
+  </div>
+
+  <!-- Tab: Detection -->
+  <div class="tab-content active" id="tab-detection">
+    <div class="sig-grid">
+      <div class="sig-row">
+        <div class="sig-left">
+          <span style="font-size:20px">🧠</span>
+          <div><div class="sig-name">YAMNet Audio AI</div><div class="sig-wt">weight: 40%</div></div>
+        </div>
+        <div class="sig-right">
+          <div class="mini-bar"><div class="mini-fill" id="bar-yamnet" style="width:0%;background:#e91e8c;box-shadow:0 0 8px #e91e8c88"></div></div>
+          <div class="sig-pct" id="pct-yamnet" style="color:#e91e8c">0%</div>
+        </div>
+      </div>
+      <div class="sig-row">
+        <div class="sig-left">
+          <span style="font-size:20px">📊</span>
+          <div><div class="sig-name">Pitch + Energy FFT</div><div class="sig-wt">weight: 35%</div></div>
+        </div>
+        <div class="sig-right">
+          <div class="mini-bar"><div class="mini-fill" id="bar-pitch" style="width:0%;background:#9c27b0;box-shadow:0 0 8px #9c27b088"></div></div>
+          <div class="sig-pct" id="pct-pitch" style="color:#9c7dff">0%</div>
+        </div>
+      </div>
+      <div class="sig-row">
+        <div class="sig-left">
+          <span style="font-size:20px">🗣️</span>
+          <div><div class="sig-name">Keyword Detection</div><div class="sig-wt">weight: 25%</div></div>
+        </div>
+        <div class="sig-right">
+          <div class="mini-bar"><div class="mini-fill" id="bar-keyword" style="width:0%;background:#0ea5e9;box-shadow:0 0 8px #0ea5e988"></div></div>
+          <div class="sig-pct" id="pct-keyword" style="color:#0ea5e9">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="win-row">
+      <span class="win-label">Consecutive windows:</span>
+      <div class="win-dot" id="win-0"></div>
+      <div class="win-dot" id="win-1"></div>
+      <div class="win-dot" id="win-2"></div>
+      <span style="font-size:11px;color:#555;margin-left:4px" id="win-count">0/3</span>
+    </div>
+
+    <div class="kw-detected" id="kw-detected-box" style="display:none">
+      <div class="kw-det-label">Detected Keywords</div>
+      <div class="kw-det-chips" id="kw-det-chips"></div>
+    </div>
+
+    <div class="log-box">
+      <div class="log-hdr">// ACTIVITY LOG</div>
+      <div id="log-lines"><div class="log-line" style="color:#444">Waiting for activity...</div></div>
+    </div>
+  </div>
+
+  <!-- Tab: Contacts -->
+  <div class="tab-content" id="tab-contacts-tab">
+    <div class="contact-list" id="armed-contact-list" style="margin-bottom:16px"></div>
+    <div class="add-form">
+      <input class="inp" id="inp-name2" placeholder="Name" />
+      <input class="inp" id="inp-phone2" placeholder="+91 ..." />
+      <button class="add-btn" onclick="addContact2()">+</button>
+    </div>
+    <div style="text-align:center;font-size:12px;color:#555;margin-top:12px" id="armed-contact-count"></div>
+  </div>
+
+  <!-- Tab: Location -->
+  <div class="tab-content" id="tab-location">
+    <div class="geo-card">
+      <div class="geo-hdr">
+        <span class="pulse-dot" id="geo-dot" style="background:#555"></span>
+        <span id="geo-status-text" style="font-size:13px;color:#555">Location offline</span>
+      </div>
+      <div id="geo-details">
+        <div style="color:#444;font-size:13px;text-align:center;padding:20px">Acquiring GPS signal...</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="disarm-btn" onclick="disarm()">Disarm & Exit</button>
+</div>
+
+<!-- ═══════════════ SOS SCREEN ═══════════════ -->
+<div id="sos-screen">
+  <div class="sos-bg-flash"></div>
+  <div class="sos-inner">
+    <span class="sos-icon">🚨</span>
+    <div class="sos-title">SOS TRIGGERED</div>
+    <div class="sos-sub">Distress detected — sending help</div>
+
+    <div class="sos-timer-wrap">
+      <svg width="150" height="150" style="position:absolute;inset:0">
+        <circle cx="75" cy="75" r="68" fill="none" stroke="rgba(255,23,68,0.15)" stroke-width="6"/>
+        <circle id="sos-ring" cx="75" cy="75" r="68" fill="none" stroke="var(--red)" stroke-width="6"
+          stroke-dasharray="427.26" stroke-dashoffset="427.26"
+          stroke-linecap="round"
+          style="transform:rotate(-90deg);transform-origin:75px 75px;transition:stroke-dashoffset 1s linear"/>
+      </svg>
+      <div class="sos-countdown">
+        <div class="sos-num" id="sos-num">30</div>
+        <div class="sos-sec">seconds</div>
+      </div>
+    </div>
+
+    <p style="color:#888;font-size:13px;margin-bottom:20px">Cancel now to stop SOS</p>
+
+    <div class="sos-contacts-row" id="sos-contacts-row"></div>
+
+    <div class="sos-geo" id="sos-geo" style="display:none"></div>
+
+    <div id="sos-trigger-words" style="margin-bottom:20px;display:none">
+      <div style="font-size:11px;color:#666;margin-bottom:8px">Trigger words:</div>
+      <div id="sos-word-chips" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
+    </div>
+
+    <button class="cancel-btn" onclick="cancelSOS()">✕ Cancel SOS</button>
+    <div class="sms-sent" id="sms-sent" style="display:none">
+      ✅ SMS + WhatsApp sent to your contacts with live GPS link
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  VoiceShield — Full Frontend Logic
+// ════════════════════════════════════════════════════
+
+const API_BASE = 'https://your-backend.onrender.com'; // ← change to your backend
+
+// ── State ──────────────────────────────────────────
+let contacts = [
+  { id:'1', name:'Mom', phone:'+91 98765 43210', armed:true },
+  { id:'2', name:'Priya', phone:'+91 87654 32109', armed:true },
+];
+let armed = false;
+let sosActive = false;
+let cancelTimer = null;
+let cancelInterval = null;
+let cancelCountdown = 30;
+
+// Audio
+let audioCtx = null;
+let analyser = null;
+let micStream = null;
+let animFrame = null;
+let baselineSamples = [];
+let pitchBaseline = 200;
+
+// Scores
+let yamnetScore = 0;
+let pitchScore = 0;
+let keywordScore = 0;
+let consecutiveHits = 0;
+let detectedWords = [];
+
+// Speech
+let speechRecog = null;
+
+// Geo
+let geoWatchId = null;
+let currentLocation = null;
+
+// Log
+let logLines = [];
+
+// ── Screen ─────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('active'); window.scrollTo(0,0); }
+  renderContactList();
+}
+
+// ── Contacts ───────────────────────────────────────
+function renderContactList() {
+  // Setup screen
+  const setupList = document.getElementById('contact-list');
+  if (setupList) {
+    setupList.innerHTML = contacts.map(c => `
+      <div class="contact-row">
+        <div class="c-avatar">${c.name[0].toUpperCase()}</div>
+        <div class="c-info">
+          <div class="c-name">${esc(c.name)}</div>
+          <div class="c-phone">${esc(c.phone)}</div>
+        </div>
+        <button class="c-toggle" onclick="toggleContact('${c.id}')"
+          style="background:${c.armed?'rgba(0,230,118,0.12)':'rgba(255,255,255,0.05)'};border-color:${c.armed?'var(--green)':'#444'};color:${c.armed?'var(--green)':'#666'}">
+          ${c.armed ? '✓ Armed' : 'Disarmed'}
+        </button>
+        <button class="c-remove" onclick="removeContact('${c.id}')">✕</button>
+      </div>
+    `).join('');
+    const armBtn = document.getElementById('arm-btn');
+    const armed = contacts.filter(c=>c.armed).length;
+    if(armBtn) armBtn.textContent = `🛡️ Arm VoiceShield (${armed} contact${armed===1?'':'s'})`;
+    if(armBtn) armBtn.disabled = armed === 0;
+    if(armBtn) armBtn.style.opacity = armed === 0 ? '0.4' : '1';
+  }
+  // Armed screen
+  const armedList = document.getElementById('armed-contact-list');
+  if (armedList) {
+    armedList.innerHTML = contacts.map(c => `
+      <div class="contact-row">
+        <div class="c-avatar">${c.name[0].toUpperCase()}</div>
+        <div class="c-info">
+          <div class="c-name">${esc(c.name)}</div>
+          <div class="c-phone">${esc(c.phone)}</div>
+        </div>
+        <button class="c-toggle" onclick="toggleContact('${c.id}')"
+          style="background:${c.armed?'rgba(0,230,118,0.12)':'rgba(255,255,255,0.05)'};border-color:${c.armed?'var(--green)':'#444'};color:${c.armed?'var(--green)':'#666'}">
+          ${c.armed ? '✓ Armed' : 'Off'}
+        </button>
+      </div>
+    `).join('');
+    const cnt = document.getElementById('armed-contact-count');
+    if(cnt) cnt.textContent = contacts.filter(c=>c.armed).length + ' contacts armed';
+  }
+}
+
+function addContact() {
+  const n = document.getElementById('inp-name').value.trim();
+  const p = document.getElementById('inp-phone').value.trim();
+  if (!n || !p) return;
+  contacts.push({ id: Date.now().toString(), name:n, phone:p, armed:true });
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-phone').value = '';
+  addLog(`👤 Contact added: ${n}`);
+  renderContactList();
+}
+function addContact2() {
+  const n = document.getElementById('inp-name2').value.trim();
+  const p = document.getElementById('inp-phone2').value.trim();
+  if (!n || !p) return;
+  contacts.push({ id: Date.now().toString(), name:n, phone:p, armed:true });
+  document.getElementById('inp-name2').value = '';
+  document.getElementById('inp-phone2').value = '';
+  addLog(`👤 Contact added: ${n}`);
+  renderContactList();
+}
+function toggleContact(id) {
+  contacts = contacts.map(c => c.id===id ? {...c, armed:!c.armed} : c);
+  renderContactList();
+}
+function removeContact(id) {
+  contacts = contacts.filter(c => c.id!==id);
+  renderContactList();
+}
+
+// ── Arm ────────────────────────────────────────────
+async function armVoiceShield() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false } });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    source.connect(analyser);
+    armed = true;
+    baselineSamples = [];
+    pitchBaseline = 200;
+    consecutiveHits = 0;
+    detectedWords = [];
+    yamnetScore = 0; pitchScore = 0; keywordScore = 0;
+
+    showScreen('armed');
+    renderContactList();
+    buildWaveform();
+    startGeo();
+    startSpeech();
+    animFrame = requestAnimationFrame(analyzeAudio);
+    addLog('🛡️ VoiceShield armed');
+
+    document.getElementById('nav-status').style.display = 'flex';
+    document.getElementById('nav-disarm-btn').style.display = 'block';
+    document.getElementById('nav-dot').style.background = 'var(--green)';
+    document.getElementById('nav-status-text').style.color = 'var(--green)';
+    document.getElementById('nav-status-text').textContent = 'ARMED';
+  } catch(e) {
+    alert('Microphone access denied. Please allow mic access and try again.');
+  }
+}
+
+function disarm() {
+  armed = false;
+  sosActive = false;
+  if(cancelTimer) clearTimeout(cancelTimer);
+  if(cancelInterval) clearInterval(cancelInterval);
+  cancelAnimationFrame(animFrame);
+  micStream && micStream.getTracks().forEach(t=>t.stop());
+  speechRecog && speechRecog.stop();
+  stopGeo();
+  yamnetScore=0; pitchScore=0; keywordScore=0;
+  consecutiveHits=0; detectedWords=[];
+  document.getElementById('sos-screen').classList.remove('active');
+  document.getElementById('nav-status').style.display='none';
+  document.getElementById('nav-disarm-btn').style.display='none';
+  logLines=[];
+  showScreen('landing');
+}
+
+// ── Build waveform bars ────────────────────────────
+function buildWaveform() {
+  const wf = document.getElementById('waveform');
+  wf.innerHTML = '';
+  for(let i=0;i<64;i++){
+    const b = document.createElement('div');
+    b.className='wave-bar';
+    b.id=`wb-${i}`;
+    b.style.cssText='flex:1;border-radius:3px;min-height:3px;background:rgba(233,30,140,0.5)';
+    wf.appendChild(b);
+  }
+}
+
+// ── Audio Analysis ─────────────────────────────────
+function analyzeAudio() {
+  if(!analyser) return;
+
+  const freqData = new Uint8Array(analyser.frequencyBinCount);
+  const timeData = new Float32Array(analyser.fftSize);
+  analyser.getByteFrequencyData(freqData);
+  analyser.getFloatTimeDomainData(timeData);
+
+  // Waveform
+  const step = Math.floor(freqData.length/64);
+  for(let i=0;i<64;i++){
+    const v = freqData[i*step]/255;
+    const h = Math.max(3, v*72);
+    const el = document.getElementById(`wb-${i}`);
+    if(el){
+      el.style.height=h+'px';
+      const score = yamnetScore*0.40+pitchScore*0.35+keywordScore*0.25;
+      const col = score>0.72?'#ff1744':score>0.45?'#ff9100':score>0.2?'#ffea00':'#e91e8c';
+      el.style.background=`linear-gradient(to top, ${col}cc, ${col}44)`;
+      el.style.opacity=(0.5+v*0.5).toString();
+    }
+  }
+
+  // RMS
+  const rms = Math.sqrt(timeData.reduce((s,v)=>s+v*v,0)/timeData.length);
+
+  // Pitch (dominant frequency bin)
+  let maxAmp=0, maxIdx=0;
+  for(let i=0;i<freqData.length;i++){
+    if(freqData[i]>maxAmp){ maxAmp=freqData[i]; maxIdx=i; }
+  }
+  const sampleRate = audioCtx.sampleRate;
+  const pitchHz = (maxIdx/analyser.frequencyBinCount)*(sampleRate/2);
+
+  // Baseline calibration (first ~2s)
+  if(baselineSamples.length < 40){
+    baselineSamples.push(pitchHz);
+    if(baselineSamples.length===40){
+      pitchBaseline = baselineSamples.reduce((a,b)=>a+b,0)/40 || 200;
+      addLog(`📐 Pitch baseline: ${Math.round(pitchBaseline)}Hz`);
+    }
+  }
+
+  // Scores
+  const highFreq = Array.from(freqData.slice(Math.floor(freqData.length*0.4))).reduce((s,v)=>s+v,0)/(freqData.length*0.6)/255;
+  const yScore = Math.min(1, rms*5 + highFreq*0.5);
+  const pitchRatio = pitchHz/(pitchBaseline||200);
+  const pScore = Math.min(1, Math.max(0, (pitchRatio-1)/1.0));
+
+  yamnetScore = yamnetScore*0.6 + yScore*0.4; // smooth
+  pitchScore  = pitchScore*0.7  + pScore*0.3;
+
+  const fused = yamnetScore*0.40 + pitchScore*0.35 + keywordScore*0.25;
+  updateUI(fused);
+  checkThreshold(fused);
+
+  animFrame = requestAnimationFrame(analyzeAudio);
+}
+
+// ── UI Update ──────────────────────────────────────
+function updateUI(score) {
+  const pct = Math.round(score*100);
+  const col = score>0.72?'#ff1744':score>0.45?'#ff9100':score>0.2?'#ffea00':'#00e676';
+  const stateText = score>0.72?'🚨 CRITICAL':score>0.45?'⚠️ ELEVATED':score>0.2?'📊 ACTIVE':'🛡️ SAFE';
+
+  const orbScore = document.getElementById('orb-score');
+  const orbState = document.getElementById('orb-state');
+  const statusOrb = document.getElementById('status-orb');
+  const circle = document.getElementById('progress-circle');
+
+  if(orbScore){ orbScore.textContent=pct+'%'; orbScore.style.color=col; }
+  if(orbState){ orbState.textContent=stateText; orbState.style.color=col; }
+  if(statusOrb){
+    statusOrb.style.boxShadow=`0 0 ${40+score*80}px ${col}55, 0 0 ${80+score*150}px ${col}22`;
+    statusOrb.style.borderColor=col+'66';
+  }
+  if(circle){
+    const circ=2*Math.PI*110;
+    circle.style.strokeDashoffset=(circ*(1-score)).toString();
+    circle.setAttribute('stroke',col);
+  }
+
+  const setBar = (id, pct2, pid, col2) => {
+    const b=document.getElementById(id); const p=document.getElementById(pid);
+    if(b) b.style.width=pct2+'%';
+    if(p){ p.textContent=pct2+'%'; p.style.color=col2; }
+  };
+  setBar('bar-yamnet', Math.round(yamnetScore*100), 'pct-yamnet','#e91e8c');
+  setBar('bar-pitch',  Math.round(pitchScore*100),  'pct-pitch', '#9c7dff');
+  setBar('bar-keyword',Math.round(keywordScore*100),'pct-keyword','#0ea5e9');
+
+  // Window dots
+  for(let i=0;i<3;i++){
+    const dot=document.getElementById(`win-${i}`);
+    if(dot){
+      dot.style.background = i<consecutiveHits ? col : '#222';
+      dot.style.boxShadow  = i<consecutiveHits ? `0 0 8px ${col}` : 'none';
+    }
+  }
+  const wc=document.getElementById('win-count');
+  if(wc) wc.textContent=consecutiveHits+'/3';
+}
+
+// ── Threshold check ────────────────────────────────
+function checkThreshold(score) {
+  if(!armed || sosActive) return;
+  if(score > 0.72){
+    consecutiveHits = Math.min(3, consecutiveHits+1);
+    addLog(`⚡ Score ${Math.round(score*100)}% — window ${consecutiveHits}/3`);
+    if(consecutiveHits >= 3) triggerSOS();
+  } else {
+    consecutiveHits = Math.max(0, consecutiveHits-1);
+  }
+}
+
+// ── Keyword Detection ─────────────────────────────
+const KEYWORDS = {
+  en: ['help','help me','stop','let me go','no','please stop','leave me alone','someone help',"don't"],
+  hi: ['bachao','chodo','mujhe chod do','madad karo','ruko','nahi','chhod','darr'],
+  gu: ['bachavo','chhodo','madad karo','nahi','roko','jaava do'],
+};
+const ALL_KW = [...KEYWORDS.en, ...KEYWORDS.hi, ...KEYWORDS.gu];
+
+function startSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ addLog('⚠️ Speech API not supported in this browser'); return; }
+  speechRecog = new SR();
+  speechRecog.continuous = true;
+  speechRecog.interimResults = true;
+  speechRecog.lang = 'hi-IN';
+
+  speechRecog.onresult = (e) => {
+    const transcript = Array.from(e.results).map(r=>r[0].transcript.toLowerCase()).join(' ');
+    const found = ALL_KW.filter(kw => transcript.includes(kw.toLowerCase()));
+    if(found.length > 0){
+      keywordScore = Math.min(1, found.length * 0.4);
+      found.forEach(w => {
+        if(!detectedWords.includes(w)){
+          detectedWords.push(w);
+          addLog(`🔑 Keyword: "${w}"`);
+        }
+      });
+      renderKeywords();
+    } else {
+      keywordScore *= 0.75;
+    }
+  };
+  speechRecog.onerror = ()=>{};
+  speechRecog.onend = () => { if(armed) speechRecog.start(); };
+  speechRecog.start();
+  addLog('🎙️ Speech recognition active (Hindi/English/Gujarati)');
+}
+
+function renderKeywords() {
+  const box = document.getElementById('kw-detected-box');
+  const chips = document.getElementById('kw-det-chips');
+  if(!box||!chips) return;
+  if(detectedWords.length > 0){
+    box.style.display='block';
+    chips.innerHTML = detectedWords.slice(-8).map(w=>
+      `<span class="kw-det-chip">${esc(w)}</span>`).join('');
+  }
+}
+
+// ── Geolocation ────────────────────────────────────
+function startGeo() {
+  if(!navigator.geolocation) return;
+  geoWatchId = navigator.geolocation.watchPosition(
+    pos => {
+      currentLocation = { lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy, ts:pos.timestamp };
+      updateGeoUI();
+    },
+    err => addLog('⚠️ GPS: '+err.message),
+    { enableHighAccuracy:true, maximumAge:5000 }
+  );
+  const dot = document.getElementById('geo-dot');
+  const txt = document.getElementById('geo-status-text');
+  if(dot){ dot.style.background='var(--green)'; }
+  if(txt){ txt.style.color='var(--green)'; txt.textContent='Live tracking active'; }
+}
+
+function stopGeo() {
+  if(geoWatchId!==null){ navigator.geolocation.clearWatch(geoWatchId); geoWatchId=null; }
+  currentLocation=null;
+}
+
+function updateGeoUI() {
+  const det = document.getElementById('geo-details');
+  if(!det || !currentLocation) return;
+  const mapsUrl=`https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
+  det.innerHTML=`
+    <div class="geo-row"><span class="geo-label">Latitude</span><span class="geo-val">${currentLocation.lat.toFixed(6)}°</span></div>
+    <div class="geo-row"><span class="geo-label">Longitude</span><span class="geo-val">${currentLocation.lng.toFixed(6)}°</span></div>
+    <div class="geo-row"><span class="geo-label">Accuracy</span><span class="geo-val">±${Math.round(currentLocation.acc)}m</span></div>
+    <div class="geo-row"><span class="geo-label">Updated</span><span class="geo-val">${new Date(currentLocation.ts).toLocaleTimeString()}</span></div>
+    <a href="${mapsUrl}" target="_blank" class="maps-btn">📍 Open in Google Maps →</a>
+    <div class="share-box">
+      <div class="share-label">SOS contacts will receive this link:</div>
+      <div class="share-url">${mapsUrl}</div>
+    </div>
+  `;
+}
+
+// ── SOS ────────────────────────────────────────────
+function triggerSOS() {
+  if(sosActive) return;
+  sosActive = true;
+  cancelCountdown = 30;
+
+  const sosEl = document.getElementById('sos-screen');
+  sosEl.style.display='flex';
+  setTimeout(()=>sosEl.classList.add('active'),10);
+
+  document.getElementById('nav-dot').style.background='var(--red)';
+  document.getElementById('nav-status-text').style.color='var(--red)';
+  document.getElementById('nav-status-text').textContent='SOS ACTIVE';
+
+  // Contacts in SOS
+  const row = document.getElementById('sos-contacts-row');
+  if(row){
+    row.innerHTML = contacts.filter(c=>c.armed).map(c=>`
+      <div class="sos-contact">
+        <div class="sos-c-avatar">${c.name[0].toUpperCase()}</div>
+        <div class="sos-c-name">${esc(c.name)}</div>
+        <div class="sos-c-status" id="sos-status-${c.id}">Pending...</div>
+      </div>
+    `).join('');
+  }
+
+  // GPS in SOS
+  if(currentLocation){
+    const geo=document.getElementById('sos-geo');
+    if(geo){ geo.style.display='block'; geo.textContent=`📍 GPS: ${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)}`; }
+  }
+
+  // Keywords in SOS
+  if(detectedWords.length>0){
+    const tw=document.getElementById('sos-trigger-words');
+    const wc=document.getElementById('sos-word-chips');
+    if(tw) tw.style.display='block';
+    if(wc) wc.innerHTML=detectedWords.map(w=>`<span style="border:1px solid rgba(255,23,68,0.4);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--red)">${esc(w)}</span>`).join('');
+  }
+
+  addLog('🚨 SOS TRIGGERED — 30s cancel window');
+  startCancelCountdown();
+}
+
+function startCancelCountdown() {
+  const numEl=document.getElementById('sos-num');
+  const ring=document.getElementById('sos-ring');
+  const circ=2*Math.PI*68;
+  cancelCountdown=30;
+
+  cancelInterval = setInterval(()=>{
+    cancelCountdown--;
+    if(numEl) numEl.textContent=cancelCountdown;
+    if(ring) ring.style.strokeDashoffset=(circ*(1-((30-cancelCountdown)/30))).toString();
+    if(cancelCountdown<=0){
+      clearInterval(cancelInterval);
+      fireSOS();
+    }
+  },1000);
+  cancelTimer = setTimeout(fireSOS, 30000);
+}
+
+function cancelSOS() {
+  if(cancelTimer) clearTimeout(cancelTimer);
+  if(cancelInterval) clearInterval(cancelInterval);
+  sosActive = false;
+  consecutiveHits = 0;
+  document.getElementById('sos-screen').classList.remove('active');
+  setTimeout(()=>{ document.getElementById('sos-screen').style.display='none'; },300);
+  document.getElementById('nav-dot').style.background='var(--green)';
+  document.getElementById('nav-status-text').style.color='var(--green)';
+  document.getElementById('nav-status-text').textContent='ARMED';
+  document.getElementById('sms-sent').style.display='none';
+  addLog('✅ SOS cancelled by user');
+}
+
+async function fireSOS() {
+  if(cancelTimer) clearTimeout(cancelTimer);
+  if(cancelInterval) clearInterval(cancelInterval);
+
+  const armedContacts = contacts.filter(c=>c.armed);
+  const payload = {
+    userId: 'voiceshield_user',
+    contacts: armedContacts,
+    location: currentLocation,
+    audioScore: yamnetScore*0.40+pitchScore*0.35+keywordScore*0.25,
+    triggerWords: detectedWords,
+    timestamp: new Date().toISOString(),
+  };
+
+  addLog('📡 Sending SOS to backend...');
+  try {
+    const res = await fetch(`${API_BASE}/api/sos/trigger`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),
+    });
+    if(res.ok){
+      armedContacts.forEach(c=>{
+        const el=document.getElementById(`sos-status-${c.id}`);
+        if(el){ el.textContent='✓ Sent'; el.style.color='var(--green)'; }
+        addLog(`📱 SMS → ${c.name} (${c.phone})`);
+      });
+      document.getElementById('sms-sent').style.display='block';
+    }
+  } catch {
+    // Demo mode: show as sent
+    armedContacts.forEach(c=>{
+      const el=document.getElementById(`sos-status-${c.id}`);
+      if(el){ el.textContent='✓ Sent'; el.style.color='var(--green)'; }
+    });
+    document.getElementById('sms-sent').style.display='block';
+    addLog('📡 Demo mode: SOS payload logged to console');
+    console.log('[VoiceShield SOS]', payload);
+  }
+}
+
+// ── Log ────────────────────────────────────────────
+function addLog(msg) {
+  const t = new Date().toLocaleTimeString();
+  logLines.unshift(`[${t}] ${msg}`);
+  if(logLines.length>20) logLines.pop();
+  const el=document.getElementById('log-lines');
+  if(el) el.innerHTML=logLines.map(l=>`<div class="log-line">${esc(l)}</div>`).join('');
+}
+
+// ── Tab switch ─────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`tab-${id}`).classList.add('active');
+}
+
+// ── Utils ──────────────────────────────────────────
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// ── Init ───────────────────────────────────────────
+renderContactList();
+</script>
+</body>
+</html>

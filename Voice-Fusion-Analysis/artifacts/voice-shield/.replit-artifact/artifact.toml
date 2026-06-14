@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "VoiceShield"
+version = "1.0.0"
+id = "artifacts/voice-shield"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21799
+
+[services.development]
+run = "pnpm --filter @workspace/voice-shield run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/voice-shield", "run", "build" ]
+publicDir = "artifacts/voice-shield/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21799"
+BASE_PATH = "/"
